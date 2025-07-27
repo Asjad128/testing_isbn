@@ -168,7 +168,7 @@ export default function App() {
               <option value="GRANDMALL">GRAND MALL</option>
               <option value="MARINAMALL">MARINA MALL</option>
               <option value="SKYWALK">SKYWALK</option>
-              <option value="WAREHOUS">WAREHOUSE</option>
+              <option value="WAREHOUSE">WAREHOUSE</option>
             </select>
 
             {!isSaved && (
