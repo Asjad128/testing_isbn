@@ -182,9 +182,10 @@ export default function App() {
                 disabled={isSaving}
               >
                 {isSaving ? "Saving..." : "💾 Save"}
-              </button> <br />
+              </button>
             )}
             {saveMessage && <p style={{ color: "green", marginTop: 12 }}>{saveMessage}</p>}
+              <br/>
             <button style={styles.secondaryButton} onClick={handleBack}>Return to Scanner</button>
           </>
         )}
