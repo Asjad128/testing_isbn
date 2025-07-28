@@ -296,8 +296,10 @@ export default function App() {
                   >
                     {isSaving ? "💾 Saving..." : "💾 Save Book"}
                   </button>
-                )}
 
+                )}
+                
+                
                 {saveMessage && (
                   <div style={styles.messageContainer}>
                     <span style={styles.message}>
@@ -305,7 +307,7 @@ export default function App() {
                     </span>
                   </div>
                 )}
-
+                <br/>
                 <button style={styles.secondaryButton} onClick={handleBack}>
                   🔄 Return to Scanner
                 </button>
