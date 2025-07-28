@@ -61,3 +61,4 @@ export default function BarcodeScanner({ onDetected }) {
     </div>
   );
 }
+
