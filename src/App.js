@@ -19,9 +19,9 @@ function RunningCharacterLoader() {
       </div>
       <p style={loadingStyles.text}>📖 Searching for book...</p>
       <div style={loadingStyles.dots}>
-        <span style={loadingStyles.dot}></span>
-        <span style={loadingStyles.dot}></span>  
-        <span style={loadingStyles.dot}></span>
+        <span style={{...loadingStyles.dot, animationDelay: "0s"}}></span>
+        <span style={{...loadingStyles.dot, animationDelay: "0.2s"}}></span>  
+        <span style={{...loadingStyles.dot, animationDelay: "0.4s"}}></span>
       </div>
     </div>
   );
@@ -39,20 +39,29 @@ export default function App() {
   const [saveMessage, setSaveMessage] = useState("");
   const [isSaved, setIsSaved] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [isLoading, setIsLoading] = useState(false); // ✅ NEW loading state
+  const [isLoading, setIsLoading] = useState(false);
   const [location, setLocation] = useState("");
 
   const fetchTitle = async (isbnToUse) => {
-    setIsLoading(true); // ✅ Start loading animation
+    if (!isbnToUse.trim()) {
+      alert("Please enter a valid ISBN");
+      return;
+    }
+
+    setIsLoading(true);
     try {
       const response = await fetch("https://testocrtest.pythonanywhere.com/receive_isbn", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isbn: isbnToUse }),
+        body: JSON.stringify({ isbn: isbnToUse.trim() }),
       });
 
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       const data = await response.json();
-      setIsbn(isbnToUse);
+      setIsbn(isbnToUse.trim());
 
       if (data.title) {
         setTitleFromBackend(data.title);
@@ -64,11 +73,12 @@ export default function App() {
       }
       setView("priceEntry");
     } catch (error) {
+      console.error("Error fetching title:", error);
       setTitleFromBackend("");
       setShowManualTitle(true);
       setView("priceEntry");
     } finally {
-      setIsLoading(false); // ✅ Stop loading animation
+      setIsLoading(false);
     }
   };
 
@@ -80,18 +90,36 @@ export default function App() {
     }
 
     setIsSaving(true);
+    setSaveMessage(""); // Clear previous messages
 
     try {
       const response = await fetch("https://testocrtest.pythonanywhere.com/save_title", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isbn, b_title: title, price, quantity, location }),
+        body: JSON.stringify({ 
+          isbn, 
+          b_title: title, 
+          price: parseFloat(price), 
+          quantity: parseInt(quantity), 
+          location 
+        }),
       });
 
-      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      await response.json();
       setIsSaved(true);
       setSaveMessage("✅ Saved successfully");
+      
+      // Auto-hide success message after 3 seconds
+      setTimeout(() => {
+        setSaveMessage("");
+      }, 3000);
+      
     } catch (error) {
+      console.error("Error saving data:", error);
       setSaveMessage("❌ Error while saving");
     } finally {
       setIsSaving(false);
@@ -111,7 +139,13 @@ export default function App() {
     setIsSaved(false);
     setSaveMessage("");
     setIsSaving(false);
-    setIsLoading(false); // ✅ Reset loading state
+    setIsLoading(false);
+  };
+
+  const handleKeyPress = (e, action) => {
+    if (e.key === 'Enter') {
+      action();
+    }
   };
 
   return (
@@ -124,111 +158,132 @@ export default function App() {
             <button
               style={styles.primaryButton}
               onClick={() => setView("liveScanner")}
+              onMouseOver={(e) => e.target.style.transform = "scale(1.02)"}
+              onMouseOut={(e) => e.target.style.transform = "scale(1)"}
             >
-              Scan ISBN
+              📷 Scan ISBN
             </button>
             <p style={{ ...styles.subText, margin: "20px 0 8px 0" }}>OR</p>
             <button
               style={styles.manualButton}
               onClick={() => setView("manualIsbn")}
+              onMouseOver={(e) => e.target.style.transform = "scale(1.02)"}
+              onMouseOut={(e) => e.target.style.transform = "scale(1)"}
             >
-              Enter Manually
+              ✏️ Enter Manually
             </button>
           </>
         )}
 
         {view === "manualIsbn" && (
           <>
-            <h3>Manual ISBN Entry</h3>
+            <h3 style={styles.subHeader}>Manual ISBN Entry</h3>
             <input
               value={manualIsbn}
               onChange={(e) => setManualIsbn(e.target.value)}
-              placeholder="Enter ISBN"
+              onKeyPress={(e) => handleKeyPress(e, () => fetchTitle(manualIsbn.trim()))}
+              placeholder="Enter ISBN (e.g., 9781234567890)"
               style={styles.input}
+              maxLength={13}
             />
             <button
               style={styles.primaryButton}
               onClick={() => fetchTitle(manualIsbn.trim())}
+              disabled={!manualIsbn.trim()}
             >
-              Next
+              🔍 Search Book
             </button>
             <button style={styles.secondaryButton} onClick={handleBack}>
-              Back
+              ← Back
             </button>
           </>
         )}
 
         {view === "liveScanner" && (
           <>
-            <h3>Focus on Barcode</h3>
+            <h3 style={styles.subHeader}>Focus on Barcode</h3>
             <div style={styles.scannerArea}>
               <BarcodeScanner onDetected={fetchTitle} />
               <div style={styles.scannerLine} />
             </div>
+            <p style={styles.instructionText}>
+              Position the barcode within the frame
+            </p>
             <button style={styles.secondaryButton} onClick={handleBack}>
-              Back
+              ← Back
             </button>
           </>
         )}
 
         {view === "priceEntry" && (
           <>
-            {/* ✅ Show loading animation while fetching */}
             {isLoading ? (
               <RunningCharacterLoader />
             ) : (
               <>
-                <p style={{ textAlign: "left", fontWeight: 500, color: "#555", marginBottom: 8 }}>
-                  <span style={{ color: "#2196f3" }}>ISBN:</span> {isbn}
-                </p>
-                {titleFromBackend && (
-                  <p style={{ textAlign: "left", fontWeight: 500, color: "#555", marginBottom: 8 }}>
-                    <span style={{ color: "#2196f3" }}>Title:</span> {titleFromBackend}
+                <div style={styles.bookInfo}>
+                  <p style={styles.bookDetail}>
+                    <span style={styles.label}>📖 ISBN:</span> {isbn}
                   </p>
-                )}
+                  {titleFromBackend && (
+                    <p style={styles.bookDetail}>
+                      <span style={styles.label}>📚 Title:</span> {titleFromBackend}
+                    </p>
+                  )}
+                </div>
+
                 {showManualTitle && (
                   <>
-                    <p style={styles.inputLabel}>Enter Book Title:</p>
+                    <p style={styles.inputLabel}>📝 Enter Book Title:</p>
                     <input
                       value={manualTitle}
                       onChange={(e) => setManualTitle(e.target.value)}
-                      placeholder="Enter title"
+                      placeholder="Enter book title"
                       style={styles.input}
+                      required
                     />
                   </>
                 )}
-                <p style={styles.inputLabel}>Enter Price:</p>
+
+                <p style={styles.inputLabel}>💰 Enter Price:</p>
                 <input
                   type="number"
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
-                  placeholder="Enter price"
+                  placeholder="0.00"
                   style={styles.input}
                   min={0}
+                  step="0.01"
+                  required
                 />
-                <p style={styles.inputLabel}>Enter Quantity:</p>
+
+                <p style={styles.inputLabel}>📦 Enter Quantity:</p>
                 <input
                   type="number"
                   value={quantity}
                   onChange={(e) => setQuantity(e.target.value)}
-                  placeholder="Enter quantity"
+                  placeholder="1"
                   style={styles.input}
                   min={1}
+                  required
                 />
-                <p style={styles.inputLabel}>Select Location:</p>
+
+                <p style={styles.inputLabel}>📍 Select Location:</p>
                 <select
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
                   style={{ ...styles.input, paddingRight: 10, cursor: "pointer" }}
+                  required
                 >
                   <option value="">-- Select Location --</option>
-                  <option value="DLF">DLF</option>
-                  <option value="GRANDMALL">GRAND MALL</option>
-                  <option value="MARINAMALL">MARINA MALL</option>
-                  <option value="SKYWALK">SKYWALK</option>
-                  <option value="WAREHOUS">WAREHOUSE</option>
-                  <option value="GARUDA-BNGLR">Garuda-Bnglr</option>
+                  <option value="DLF">🏢 DLF</option>
+                  <option value="GRANDMALL">🏬 GRAND MALL</option>
+                  <option value="MARINAMALL">🛍️ MARINA MALL</option>
+                  <option value="SKYWALK">🌉 SKYWALK</option>
+                  <option value="WAREHOUSE">📦 WAREHOUSE</option>
+                  <option value="GARUDA-BNGLR">✈️ Garuda-Bnglr</option>
                 </select>
+
                 {!isSaved && (
                   <button
                     style={{
@@ -239,24 +294,20 @@ export default function App() {
                     onClick={sendToBackend}
                     disabled={isSaving}
                   >
-                    {isSaving ? "Saving..." : "💾 Save"}
+                    {isSaving ? "💾 Saving..." : "💾 Save Book"}
                   </button>
                 )}
+
                 {saveMessage && (
-                  <div style={{ marginTop: 14 }}>
-                    <span
-                      style={{
-                        color: isSaved ? "#28a745" : "#e53935",
-                        fontWeight: 600,
-                        fontSize: "15px",
-                      }}
-                    >
+                  <div style={styles.messageContainer}>
+                    <span style={styles.message}>
                       {saveMessage}
                     </span>
                   </div>
                 )}
+
                 <button style={styles.secondaryButton} onClick={handleBack}>
-                  Return to Scanner
+                  🔄 Return to Scanner
                 </button>
               </>
             )}
@@ -368,11 +419,10 @@ const loadingStyles = {
     borderRadius: "50%",
     margin: "0 3px",
     animation: "dotPulse 1.4s infinite ease-in-out",
-    animationDelay: "0s",
   },
 };
 
-// ✅ Your existing styles (unchanged)
+// ✅ Enhanced styles
 const styles = {
   container: {
     minHeight: "100vh",
@@ -403,28 +453,59 @@ const styles = {
     marginBottom: 8,
     textShadow: "0 2px 10px #e3f2fd99"
   },
+  subHeader: {
+    fontSize: "20px",
+    color: "#333",
+    fontWeight: 600,
+    marginBottom: 20,
+  },
   subText: {
     color: "#666",
     marginBottom: "18px",
     fontWeight: 500,
     letterSpacing: 0.5,
   },
-  inputLabel: {
+  instructionText: {
+    color: "#666",
+    fontSize: "14px",
+    fontStyle: "italic",
+    marginBottom: 10,
+  },
+  bookInfo: {
+    background: "#f8f9fa",
+    padding: "15px",
+    borderRadius: "12px",
+    marginBottom: "20px",
+    border: "1px solid #e9ecef",
+  },
+  bookDetail: {
+    textAlign: "left",
     fontWeight: 500,
+    color: "#555",
+    marginBottom: 8,
+    fontSize: "14px",
+  },
+  label: {
+    color: "#2196f3",
+    fontWeight: 600,
+  },
+  inputLabel: {
+    fontWeight: 600,
     color: "#444",
     textAlign: "left",
-    margin: "7px 0 2px 2px",
+    margin: "12px 0 6px 2px",
     fontSize: "15px"
   },
   input: {
     padding: "12px",
     width: "90%",
     borderRadius: "10px",
-    border: "1.5px solid #b0bbd0",
-    background: "#f7fbfc",
+    border: "2px solid #e1e5e9",
+    background: "#f8f9fa",
     fontSize: "15px",
-    marginBottom: "12px",
-    transition: "border 0.2s"
+    marginBottom: "16px",
+    transition: "all 0.3s ease",
+    outline: "none",
   },
   primaryButton: {
     background: "linear-gradient(90deg,#007bff,#2186eb)",
@@ -436,12 +517,13 @@ const styles = {
     fontWeight: 600,
     cursor: "pointer",
     marginTop: "14px",
-    marginBottom: 0,
-    boxShadow: "0 2px 12px 0 #007bff33",
-    transition: "background 0.2s, transform 0.1s"
+    marginBottom: 10,
+    boxShadow: "0 4px 15px rgba(0,123,255,0.3)",
+    transition: "all 0.2s ease",
+    minWidth: "140px",
   },
   manualButton: {
-    background: "linear-gradient(90deg,#17a2b8,#13cdc7)",
+    background: "linear-gradient(90deg,#17a2b8,#20c997)",
     color: "#fff",
     border: "none",
     borderRadius: "12px",
@@ -451,23 +533,25 @@ const styles = {
     cursor: "pointer",
     marginTop: "6px",
     marginBottom: 8,
-    transition: "background 0.2s, transform 0.1s"
+    transition: "all 0.2s ease",
+    minWidth: "140px",
   },
   saveButton: {
-    background: "linear-gradient(90deg,#28a745,#32c455)",
+    background: "linear-gradient(90deg,#28a745,#20c997)",
     color: "#fff",
     border: "none",
     borderRadius: "12px",
-    padding: "14px 28px",
+    padding: "16px 30px",
     fontSize: "17px",
     fontWeight: 600,
     cursor: "pointer",
-    marginTop: "10px",
-    boxShadow: "0 3px 14px #28a74541",
-    transition: "background 0.2s, transform 0.1s"
+    marginTop: "20px",
+    boxShadow: "0 4px 15px rgba(40,167,69,0.3)",
+    transition: "all 0.2s ease",
+    minWidth: "140px",
   },
   secondaryButton: {
-    background: "linear-gradient(90deg,#ffc107,#ff9800)",
+    background: "linear-gradient(90deg,#ffc107,#fd7e14)",
     color: "#fff",
     border: "none",
     borderRadius: "12px",
@@ -476,19 +560,20 @@ const styles = {
     fontWeight: 500,
     cursor: "pointer",
     marginTop: "16px",
-    transition: "background 0.2s, transform 0.1s"
+    transition: "all 0.2s ease",
+    minWidth: "100px",
   },
   scannerArea: {
     border: "4px solid #00bcd4",
     borderRadius: "18px",
-    boxShadow: "0 2px 30px #4fd1c599",
+    boxShadow: "0 4px 20px rgba(0,188,212,0.3)",
     width: "90%",
     maxWidth: "320px",
     margin: "0 auto 18px",
     position: "relative",
     overflow: "hidden",
     height: "240px",
-    background: "#ecfbfa"
+    background: "#f0fdff"
   },
   scannerLine: {
     position: "absolute",
@@ -498,5 +583,15 @@ const styles = {
     top: 0,
     background: "linear-gradient(90deg,#00c6ff,#0072ff,#00c6ff)",
     animation: "scan-line 2s linear infinite"
+  },
+  messageContainer: {
+    margin: "16px 0",
+    padding: "12px",
+    borderRadius: "8px",
+    background: "#f8f9fa",
+  },
+  message: {
+    fontWeight: 600,
+    fontSize: "15px",
   },
 };
