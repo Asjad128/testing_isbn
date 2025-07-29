@@ -1,21 +1,18 @@
 import { useState } from "react";
 import BarcodeScanner from "./components/BarcodeScanner";
+// ✅ Import your GIF (adjust the path based on where you saved it)
+import loadingGif from './giphy1.gif'; // or './assets/loading.gif'
 
-// Running Character Loading Animation Component
+// Updated Loading Animation Component with your GIF
 function RunningCharacterLoader() {
   return (
     <div style={loadingStyles.container}>
-      <div style={loadingStyles.runningContainer}>
-        <div style={loadingStyles.running}>
-          <div style={loadingStyles.outer}>
-            <div style={loadingStyles.body}>
-              <div style={loadingStyles.armBehind}></div>
-              <div style={loadingStyles.armFront}></div>
-              <div style={loadingStyles.legBehind}></div>
-              <div style={loadingStyles.legFront}></div>
-            </div>
-          </div>
-        </div>
+      <div style={loadingStyles.gifContainer}>
+        <img 
+          src={loadingGif} 
+          alt="Loading..." 
+          style={loadingStyles.gifImage}
+        />
       </div>
       <p style={loadingStyles.text}>📖 Searching for book...</p>
       <div style={loadingStyles.dots}>
@@ -90,7 +87,7 @@ export default function App() {
     }
 
     setIsSaving(true);
-    setSaveMessage(""); // Clear previous messages
+    setSaveMessage("");
 
     try {
       const response = await fetch("https://testocrtest.pythonanywhere.com/save_title", {
@@ -113,7 +110,6 @@ export default function App() {
       setIsSaved(true);
       setSaveMessage("✅ Saved successfully");
       
-      // Auto-hide success message after 3 seconds
       setTimeout(() => {
         setSaveMessage("");
       }, 3000);
@@ -296,10 +292,8 @@ export default function App() {
                   >
                     {isSaving ? "💾 Saving..." : "💾 Save Book"}
                   </button>
-
                 )}
-                
-                
+
                 {saveMessage && (
                   <div style={styles.messageContainer}>
                     <span style={styles.message}>
@@ -307,7 +301,7 @@ export default function App() {
                     </span>
                   </div>
                 )}
-                <br/>
+
                 <button style={styles.secondaryButton} onClick={handleBack}>
                   🔄 Return to Scanner
                 </button>
@@ -320,7 +314,7 @@ export default function App() {
   );
 }
 
-// ✅ Loading Animation Styles
+// ✅ Updated Loading Animation Styles for your GIF
 const loadingStyles = {
   container: {
     display: "flex",
@@ -330,77 +324,18 @@ const loadingStyles = {
     padding: "40px 20px",
     textAlign: "center",
   },
-  runningContainer: {
+  gifContainer: {
     marginBottom: 20,
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
   },
-  running: {
-    color: "#007bff",
-    animationDuration: "0.8s",
-  },
-  outer: {
-    animation: "runningBounce 0.8s linear infinite",
-  },
-  body: {
-    background: "#007bff",
-    height: 15,
-    width: 8,
-    borderRadius: 4,
-    transformOrigin: "4px 11px",
-    position: "relative",
-    transform: "rotate(32deg)",
-    animation: "runningBody 0.8s linear infinite",
-  },
-  armBehind: {
-    content: "",
-    width: 11,
-    height: 4,
-    top: 0,
-    left: 2,
-    borderRadius: 2,
-    transformOrigin: "2px 2px",
-    position: "absolute",
-    background: "#007bff",
-    transform: "rotate(164deg)",
-    animation: "runningArmBehind 0.8s linear infinite",
-  },
-  armFront: {
-    content: "",
-    width: 11,
-    height: 4,
-    top: 0,
-    left: 2,
-    borderRadius: 2,
-    transformOrigin: "2px 2px",
-    position: "absolute",
-    background: "#007bff",
-    transform: "rotate(24deg)",
-    animation: "runningArmFront 0.8s linear infinite",
-  },
-  legBehind: {
-    content: "",
-    width: 12,
-    height: 4,
-    top: 11,
-    left: 2,
-    borderRadius: 2,
-    transformOrigin: "2px 2px",
-    position: "absolute",
-    background: "#007bff",
-    transform: "rotate(108deg)",
-    animation: "runningLegBehind 0.8s linear infinite",
-  },
-  legFront: {
-    content: "",
-    width: 12,
-    height: 4,
-    top: 11,
-    left: 2,
-    borderRadius: 2,
-    transformOrigin: "2px 2px",
-    position: "absolute",
-    background: "#007bff",
-    transform: "rotate(10deg)",
-    animation: "runningLegFront 0.8s linear infinite",
+  gifImage: {
+    width: "120px",  // Adjust size as needed
+    height: "120px", // Adjust size as needed
+    borderRadius: "50%", // Makes it circular (optional)
+    objectFit: "cover", // Ensures proper scaling
+    boxShadow: "0 4px 15px rgba(0,0,0,0.1)", // Nice shadow
   },
   text: {
     fontSize: 18,
@@ -424,7 +359,7 @@ const loadingStyles = {
   },
 };
 
-// ✅ Enhanced styles
+// ✅ Your existing styles (unchanged as requested)
 const styles = {
   container: {
     minHeight: "100vh",
