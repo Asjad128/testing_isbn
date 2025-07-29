@@ -1,7 +1,7 @@
 import { useState } from "react";
 import BarcodeScanner from "./components/BarcodeScanner";
 // ✅ Import your GIF (adjust the path based on where you saved it)
-import loadingGif from './giphy1.gif'; // or './assets/loading.gif'
+import loadingGif from "./assets/loading.gif";   //  <-- exact spelling & case
 
 // Updated Loading Animation Component with your GIF
 function RunningCharacterLoader() {
@@ -45,7 +45,10 @@ export default function App() {
       return;
     }
 
+    setView("priceEntry");  // ✅ CHANGED: Move this BEFORE setIsLoading
     setIsLoading(true);
+    
+    const startTime = Date.now(); // ✅ ADDED: Track timing
     try {
       const response = await fetch("https://testocrtest.pythonanywhere.com/receive_isbn", {
         method: "POST",
@@ -68,14 +71,15 @@ export default function App() {
         setTitleFromBackend("");
         setShowManualTitle(true);
       }
-      setView("priceEntry");
     } catch (error) {
       console.error("Error fetching title:", error);
       setTitleFromBackend("");
       setShowManualTitle(true);
-      setView("priceEntry");
     } finally {
-      setIsLoading(false);
+      // ✅ ADDED: Ensure loader shows minimum 300ms
+      const elapsed = Date.now() - startTime;
+      const delay = Math.max(0, 300 - elapsed);
+      setTimeout(() => setIsLoading(false), delay);
     }
   };
 
@@ -336,6 +340,7 @@ const loadingStyles = {
     borderRadius: "50%", // Makes it circular (optional)
     objectFit: "cover", // Ensures proper scaling
     boxShadow: "0 4px 15px rgba(0,0,0,0.1)", // Nice shadow
+    display: "block", // ✅ ADDED: Ensure proper display
   },
   text: {
     fontSize: 18,
