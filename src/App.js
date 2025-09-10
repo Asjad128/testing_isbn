@@ -1,9 +1,7 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import BarcodeScanner from "./components/BarcodeScanner";
-// ✅ Import your GIF (adjust the path based on where you saved it)
 import loadingGif from "./assets/loading.gif";   //  <-- exact spelling & case
 
-// Updated Loading Animation Component with your GIF
 function RunningCharacterLoader() {
   return (
     <div style={loadingStyles.container}>
@@ -38,31 +36,38 @@ export default function App() {
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [location, setLocation] = useState("");
+  
+  // === ADDED: Ref for auto-focusing price input ===
+  const priceInputRef = useRef(null);
+
+  useEffect(() => {
+    // === Focus price input when entering priceEntry view ===
+    if (view === "priceEntry" && priceInputRef.current) {
+      priceInputRef.current.focus();
+    }
+  }, [view]);
+  // =============================
 
   const fetchTitle = async (isbnToUse) => {
     if (!isbnToUse.trim()) {
       alert("Please enter a valid ISBN");
       return;
     }
-
-    setView("priceEntry");  // ✅ CHANGED: Move this BEFORE setIsLoading
+    setView("priceEntry");  // Move this BEFORE setIsLoading
     setIsLoading(true);
-    
-    const startTime = Date.now(); // ✅ ADDED: Track timing
+    const startTime = Date.now();
+
     try {
       const response = await fetch("https://testocrtest.pythonanywhere.com/receive_isbn", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ isbn: isbnToUse.trim() }),
       });
-
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-
       const data = await response.json();
       setIsbn(isbnToUse.trim());
-
       if (data.title) {
         setTitleFromBackend(data.title);
         setManualTitle("");
@@ -76,7 +81,6 @@ export default function App() {
       setTitleFromBackend("");
       setShowManualTitle(true);
     } finally {
-      // ✅ ADDED: Ensure loader shows minimum 300ms
       const elapsed = Date.now() - startTime;
       const delay = Math.max(0, 300 - elapsed);
       setTimeout(() => setIsLoading(false), delay);
@@ -89,10 +93,8 @@ export default function App() {
       alert("Please fill in all fields including location.");
       return;
     }
-
     setIsSaving(true);
     setSaveMessage("");
-
     try {
       const response = await fetch("https://testocrtest.pythonanywhere.com/save_title", {
         method: "POST",
@@ -105,19 +107,15 @@ export default function App() {
           location 
         }),
       });
-
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-
       await response.json();
       setIsSaved(true);
       setSaveMessage("✅ Saved successfully");
-      
       setTimeout(() => {
         setSaveMessage("");
       }, 3000);
-      
     } catch (error) {
       console.error("Error saving data:", error);
       setSaveMessage("❌ Error while saving");
@@ -158,8 +156,8 @@ export default function App() {
             <button
               style={styles.primaryButton}
               onClick={() => setView("liveScanner")}
-              onMouseOver={(e) => e.target.style.transform = "scale(1.02)"}
-              onMouseOut={(e) => e.target.style.transform = "scale(1)"}
+              onMouseOver={e => e.target.style.transform = "scale(1.02)"}
+              onMouseOut={e => e.target.style.transform = "scale(1)"}
             >
               📷 Scan ISBN
             </button>
@@ -167,21 +165,20 @@ export default function App() {
             <button
               style={styles.manualButton}
               onClick={() => setView("manualIsbn")}
-              onMouseOver={(e) => e.target.style.transform = "scale(1.02)"}
-              onMouseOut={(e) => e.target.style.transform = "scale(1)"}
+              onMouseOver={e => e.target.style.transform = "scale(1.02)"}
+              onMouseOut={e => e.target.style.transform = "scale(1)"}
             >
               ✏️ Enter Manually
             </button>
           </>
         )}
-
         {view === "manualIsbn" && (
           <>
             <h3 style={styles.subHeader}>Manual ISBN Entry</h3>
             <input
               value={manualIsbn}
-              onChange={(e) => setManualIsbn(e.target.value)}
-              onKeyPress={(e) => handleKeyPress(e, () => fetchTitle(manualIsbn.trim()))}
+              onChange={e => setManualIsbn(e.target.value)}
+              onKeyPress={e => handleKeyPress(e, () => fetchTitle(manualIsbn.trim()))}
               placeholder="Enter ISBN (e.g., 9781234567890)"
               style={styles.input}
               maxLength={13}
@@ -198,7 +195,6 @@ export default function App() {
             </button>
           </>
         )}
-
         {view === "liveScanner" && (
           <>
             <h3 style={styles.subHeader}>Focus on Barcode</h3>
@@ -214,7 +210,6 @@ export default function App() {
             </button>
           </>
         )}
-
         {view === "priceEntry" && (
           <>
             {isLoading ? (
@@ -231,47 +226,44 @@ export default function App() {
                     </p>
                   )}
                 </div>
-
                 {showManualTitle && (
                   <>
                     <p style={styles.inputLabel}>📝 Enter Book Title:</p>
                     <input
                       value={manualTitle}
-                      onChange={(e) => setManualTitle(e.target.value)}
+                      onChange={e => setManualTitle(e.target.value)}
                       placeholder="Enter book title"
                       style={styles.input}
                       required
                     />
                   </>
                 )}
-
                 <p style={styles.inputLabel}>💰 Enter Price:</p>
                 <input
                   type="number"
                   value={price}
-                  onChange={(e) => setPrice(e.target.value)}
+                  onChange={e => setPrice(e.target.value)}
                   placeholder="0.00"
                   style={styles.input}
                   min={0}
                   step="0.01"
                   required
+                  ref={priceInputRef} // === Autofocused price input ===
                 />
-
                 <p style={styles.inputLabel}>📦 Enter Quantity:</p>
                 <input
                   type="number"
                   value={quantity}
-                  onChange={(e) => setQuantity(e.target.value)}
+                  onChange={e => setQuantity(e.target.value)}
                   placeholder="1"
                   style={styles.input}
                   min={1}
                   required
                 />
-
                 <p style={styles.inputLabel}>📍 Select Location:</p>
                 <select
                   value={location}
-                  onChange={(e) => setLocation(e.target.value)}
+                  onChange={e => setLocation(e.target.value)}
                   style={{ ...styles.input, paddingRight: 10, cursor: "pointer" }}
                   required
                 >
@@ -283,7 +275,6 @@ export default function App() {
                   <option value="WAREHOUSE">📦 WAREHOUSE</option>
                   <option value="GARUDA-BNGLR">✈️ Garuda-Bnglr</option>
                 </select>
-
                 {!isSaved && (
                   <button
                     style={{
@@ -297,7 +288,6 @@ export default function App() {
                     {isSaving ? "💾 Saving..." : "💾 Save Book"}
                   </button>
                 )}
-
                 {saveMessage && (
                   <div style={styles.messageContainer}>
                     <span style={styles.message}>
@@ -305,7 +295,6 @@ export default function App() {
                     </span>
                   </div>
                 )}
-
                 <button style={styles.secondaryButton} onClick={handleBack}>
                   🔄 Return to Scanner
                 </button>
@@ -318,7 +307,6 @@ export default function App() {
   );
 }
 
-// ✅ Updated Loading Animation Styles for your GIF
 const loadingStyles = {
   container: {
     display: "flex",
@@ -335,12 +323,12 @@ const loadingStyles = {
     alignItems: "center",
   },
   gifImage: {
-    width: "120px",  // Adjust size as needed
-    height: "120px", // Adjust size as needed
-    borderRadius: "50%", // Makes it circular (optional)
-    objectFit: "cover", // Ensures proper scaling
-    boxShadow: "0 4px 15px rgba(0,0,0,0.1)", // Nice shadow
-    display: "block", // ✅ ADDED: Ensure proper display
+    width: "120px",
+    height: "120px",
+    borderRadius: "50%",
+    objectFit: "cover",
+    boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+    display: "block",
   },
   text: {
     fontSize: 18,
@@ -364,7 +352,6 @@ const loadingStyles = {
   },
 };
 
-// ✅ Your existing styles (unchanged as requested)
 const styles = {
   container: {
     minHeight: "100vh",
@@ -537,4 +524,3 @@ const styles = {
     fontSize: "15px",
   },
 };
-
