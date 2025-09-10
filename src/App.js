@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import BarcodeScanner from "./components/BarcodeScanner";
-import loadingGif from "./assets/loading.gif";   //  <-- exact spelling & case
+import loadingGif from "./assets/loading.gif";
 
 function RunningCharacterLoader() {
   return (
@@ -35,23 +35,25 @@ export default function App() {
   const [isSaved, setIsSaved] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [location, setLocation] = useState("");
+  const [location, setLocation] = useState("GRANDMALL"); // Default location
   
   const priceInputRef = useRef(null);
 
-useEffect(() => {
-  if (view === "priceEntry" && !isLoading && priceInputRef.current) {
-    priceInputRef.current.focus();
-  }
-}, [view, isLoading]);
+  useEffect(() => {
+    if (view === "priceEntry" && !isLoading) {
+      const timer = setTimeout(() => {
+        priceInputRef.current?.focus();
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [view, isLoading]);
 
-  
   const fetchTitle = async (isbnToUse) => {
     if (!isbnToUse.trim()) {
       alert("Please enter a valid ISBN");
       return;
     }
-    setView("priceEntry");  // Move this BEFORE setIsLoading
+    setView("priceEntry");
     setIsLoading(true);
     const startTime = Date.now();
 
@@ -130,7 +132,7 @@ useEffect(() => {
     setManualTitle("");
     setPrice("");
     setQuantity("1");
-    setLocation("");
+    setLocation("GRANDMALL");
     setShowManualTitle(false);
     setIsSaved(false);
     setSaveMessage("");
@@ -200,9 +202,7 @@ useEffect(() => {
               <BarcodeScanner onDetected={fetchTitle} />
               <div style={styles.scannerLine} />
             </div>
-            <p style={styles.instructionText}>
-              Position the barcode within the frame
-            </p>
+            <p style={styles.instructionText}>Position the barcode within the frame</p>
             <button style={styles.secondaryButton} onClick={handleBack}>
               ← Back
             </button>
@@ -269,7 +269,7 @@ useEffect(() => {
                 >
                   <option value="">-- Select Location --</option>
                   <option value="DLF">🏢 DLF</option>
-                  <option value="GRANDMALL" selected>🏬 GRAND MALL</option>
+                  <option value="GRANDMALL">🏬 GRAND MALL</option>
                   <option value="MARINAMALL">🛍️ MARINA MALL</option>
                   <option value="SKYWALK">🌉 SKYWALK</option>
                   <option value="WAREHOUSE">📦 WAREHOUSE</option>
@@ -290,9 +290,7 @@ useEffect(() => {
                 )}
                 {saveMessage && (
                   <div style={styles.messageContainer}>
-                    <span style={styles.message}>
-                      {saveMessage}
-                    </span>
+                    <span style={styles.message}>{saveMessage}</span>
                   </div>
                 )}
                 <button style={styles.secondaryButton} onClick={handleBack}>
@@ -360,7 +358,7 @@ const styles = {
     alignItems: "center",
     justifyContent: "center",
     fontFamily: "'Inter', 'Segoe UI', sans-serif",
-    padding: "20px"
+    padding: "20px",
   },
   card: {
     width: "100%",
@@ -372,7 +370,7 @@ const styles = {
     textAlign: "center",
     margin: "0 8px",
     position: "relative",
-    animation: "fadeIn 0.7s"
+    animation: "fadeIn 0.7s",
   },
   header: {
     fontSize: "30px",
@@ -380,7 +378,7 @@ const styles = {
     fontWeight: 700,
     letterSpacing: 1,
     marginBottom: 8,
-    textShadow: "0 2px 10px #e3f2fd99"
+    textShadow: "0 2px 10px #e3f2fd99",
   },
   subHeader: {
     fontSize: "20px",
@@ -423,7 +421,7 @@ const styles = {
     color: "#444",
     textAlign: "left",
     margin: "12px 0 6px 2px",
-    fontSize: "15px"
+    fontSize: "15px",
   },
   input: {
     padding: "12px",
@@ -502,7 +500,7 @@ const styles = {
     position: "relative",
     overflow: "hidden",
     height: "240px",
-    background: "#f0fdff"
+    background: "#f0fdff",
   },
   scannerLine: {
     position: "absolute",
@@ -511,7 +509,7 @@ const styles = {
     height: "4px",
     top: 0,
     background: "linear-gradient(90deg,#00c6ff,#0072ff,#00c6ff)",
-    animation: "scan-line 2s linear infinite"
+    animation: "scan-line 2s linear infinite",
   },
   messageContainer: {
     margin: "16px 0",
