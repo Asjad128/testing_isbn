@@ -37,17 +37,15 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [location, setLocation] = useState("");
   
-  // === ADDED: Ref for auto-focusing price input ===
   const priceInputRef = useRef(null);
 
-  useEffect(() => {
-    // === Focus price input when entering priceEntry view ===
-    if (view === "priceEntry" && priceInputRef.current) {
-      priceInputRef.current.focus();
-    }
-  }, [view]);
-  // =============================
+useEffect(() => {
+  if (view === "priceEntry" && !isLoading && priceInputRef.current) {
+    priceInputRef.current.focus();
+  }
+}, [view, isLoading]);
 
+  
   const fetchTitle = async (isbnToUse) => {
     if (!isbnToUse.trim()) {
       alert("Please enter a valid ISBN");
@@ -248,7 +246,9 @@ export default function App() {
                   min={0}
                   step="0.01"
                   required
-                  ref={priceInputRef} // === Autofocused price input ===
+                  ref={priceInputRef}
+                  inputMode="decimal"
+                  pattern="[0-9]*"
                 />
                 <p style={styles.inputLabel}>📦 Enter Quantity:</p>
                 <input
