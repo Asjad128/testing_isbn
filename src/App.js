@@ -269,7 +269,7 @@ export default function App() {
                 >
                   <option value="">-- Select Location --</option>
                   <option value="DLF">🏢 DLF</option>
-                  <option value="GRANDMALL">🏬 GRAND MALL</option>
+                  <option value="GRANDMALL" selected>🏬 GRAND MALL</option>
                   <option value="MARINAMALL">🛍️ MARINA MALL</option>
                   <option value="SKYWALK">🌉 SKYWALK</option>
                   <option value="WAREHOUSE">📦 WAREHOUSE</option>
