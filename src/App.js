@@ -192,7 +192,7 @@ export default function App() {
             </button>
             <button style={styles.secondaryButton} onClick={handleBack}>
               ← Back
-            </button><br/>
+            </button><br></br>
           </>
         )}
         {view === "liveScanner" && (
@@ -205,7 +205,7 @@ export default function App() {
             <p style={styles.instructionText}>Position the barcode within the frame</p>
             <button style={styles.secondaryButton} onClick={handleBack}>
               ← Back
-            </button><br/>
+            </button><br></br>
           </>
         )}
         {view === "priceEntry" && (
@@ -286,7 +286,7 @@ export default function App() {
                     disabled={isSaving}
                   >
                     {isSaving ? "💾 Saving..." : "💾 Save Book"}
-                  </button><br/>
+                  </button><br></br>
                 )}
                 {saveMessage && (
                   <div style={styles.messageContainer}>
