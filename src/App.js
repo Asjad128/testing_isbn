@@ -500,7 +500,7 @@ const styles = {
     margin: "0 auto 18px",
     position: "relative",
     overflow: "hidden",
-    height: "auto",
+    height: "80%",
     background: "#f0fdff",
   },
   scannerLine: {
