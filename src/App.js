@@ -205,7 +205,7 @@ export default function App() {
             <p style={styles.instructionText}>Position the barcode within the frame</p>
             <button style={styles.secondaryButton} onClick={handleBack}>
               ← Back
-            </button><br></br>
+            </button>
           </>
         )}
         {view === "priceEntry" && (
@@ -286,8 +286,9 @@ export default function App() {
                     disabled={isSaving}
                   >
                     {isSaving ? "💾 Saving..." : "💾 Save Book"}
-                  </button><br></br>
+                  </button>
                 )}
+                <br></br>
                 {saveMessage && (
                   <div style={styles.messageContainer}>
                     <span style={styles.message}>{saveMessage}</span>
